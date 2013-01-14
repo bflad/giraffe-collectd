@@ -1,0 +1,7 @@
+giraffe:
+  dashboard: '/opt/giraffe/public/collectd'
+  refresh: 10000
+graphite:
+  prefix: 'servers'
+  storage: '/opt/graphite/storage/whisper'
+  url: 'http://graphite.example.com'

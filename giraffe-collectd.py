@@ -4,20 +4,21 @@ import pprint
 import re
 import shutil
 import os
+import yaml
 
-giraffe_dashboards_dir = os.path.join('opt', 'giraffe', 'public', 'collectd')
-giraffe_dashboards_path = os.path.join(giraffe_dashboards_dir, 'dashboards-collectd.js')
-graphite_dir = os.path.join('opt', 'graphite')
-graphite_storage_dir = os.path.join(graphite_dir, 'storage', 'whisper')
-graphite_collectd_prefix = 'servers'
-graphite_collectd_dir = os.path.join(graphite_storage_dir, graphite_collectd_prefix)
-refresh = 10000
+
+with open('giraffe-collectd.yaml') as configuration_file:
+    configuration = yaml.safe_load(configuration_file)
+configuration_file.closed
+
+giraffe_dashboard_file = os.path.join(configuration['giraffe']['dashboard'], 'dashboards.js')
+graphite_collectd_dir = os.path.join(configuration['graphite']['storage'], configuration['graphite']['prefix'])
 
 def metric_server_target(metric_path):
     return metric_target(os.path.dirname(metric_path))
 
 def metric_target(metric_path):
-    return metric_path.replace(graphite_storage_dir + '/', '').replace('/', '.').replace('.wsp', '')
+    return metric_path.replace(configuration['graphite']['storage'] + '/', '').replace('/', '.').replace('.wsp', '')
 
 def metric_type(metric_filename):
     return re.sub('^.*(-|_)', '', metric_filename).replace('.wsp', '')
@@ -195,10 +196,10 @@ for server in sorted(os.listdir(graphite_collectd_dir)):
         {
             'alias': 'CPU Usage',
             'targets': [
-                'sum(' + graphite_collectd_prefix + '.' + server + '.cpu-*.cpu-user)',
-                'sum(' + graphite_collectd_prefix + '.' + server + '.cpu-*.cpu-system)',
-                'sum(' + graphite_collectd_prefix + '.' + server + '.cpu-*.cpu-wait)',
-                'sum(' + graphite_collectd_prefix + '.' + server + '.cpu-*.cpu-nice)'
+                'sum(' + configuration['graphite']['prefix'] + '.' + server + '.cpu-*.cpu-user)',
+                'sum(' + configuration['graphite']['prefix'] + '.' + server + '.cpu-*.cpu-system)',
+                'sum(' + configuration['graphite']['prefix'] + '.' + server + '.cpu-*.cpu-wait)',
+                'sum(' + configuration['graphite']['prefix'] + '.' + server + '.cpu-*.cpu-nice)'
             ],
             'scheme': [
                 '#00ff00',
@@ -226,14 +227,15 @@ for server in sorted(os.listdir(graphite_collectd_dir)):
             server_metrics = server_metrics + swap(metric_dir)
     dashboards.append({
         "name": server,
-        "refresh": refresh,
+        "refresh": configuration['giraffe']['refresh'],
         "metrics": server_metrics
     })
 
-with open(giraffe_dashboards_path + '.tmp', 'w') as f:
+with open(giraffe_dashboard_file + '.tmp', 'w') as f:
+    f.write('var graphite_url = ' + configuration['graphite']['url'] + ';\n')
     f.write('var dashboards = \n')
     pp = pprint.PrettyPrinter(indent=2, stream=f)
     pp.pprint(dashboards)
     f.write(';\n')
 f.closed
-shutil.move(giraffe_dashboards_path + '.tmp', giraffe_dashboards_path)
+shutil.move(giraffe_dashboard_file + '.tmp', giraffe_dashboard_file)

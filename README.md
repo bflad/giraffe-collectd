@@ -8,10 +8,8 @@ A simple [Giraffe](http://github.com/kenhub/giraffe) configuration generator for
 
 * Create a "collectd" Giraffe dashboard from its repository
 * Save giraffe-collectd.py to a useful location
-* Ensure giraffe-collectd.py configuration at top is correct for your environment
+* Ensure giraffe-collectd.yaml configuration correct for your environment
 * Run giraffe-collectd.py (or better yet setup a crontab)
-* Add the following line to your Giraffe index.html below the dashboards.js line: `<script src="dashboards-collectd.js"></script>`
-* Comment out the `var dashboards` section of Giraffe dashboards.js
 
 ## Contributing ##
 
