@@ -232,7 +232,7 @@ for server in sorted(os.listdir(graphite_collectd_dir)):
     })
 
 with open(giraffe_dashboard_file + '.tmp', 'w') as f:
-    f.write('var graphite_url = ' + configuration['graphite']['url'] + ';\n')
+    f.write('var graphite_url = "' + configuration['graphite']['url'] + '";\n')
     f.write('var dashboards = \n')
     pp = pprint.PrettyPrinter(indent=2, stream=f)
     pp.pprint(dashboards)
