@@ -6,6 +6,7 @@ A simple [Giraffe](http://github.com/kenhub/giraffe) configuration generator for
 
 ### Installation ###
 
+* Ensure you have yaml module for Python installed
 * Create a "collectd" Giraffe dashboard from its repository
 * Save giraffe-collectd.py to a useful location
 * Ensure giraffe-collectd.yaml configuration correct for your environment
