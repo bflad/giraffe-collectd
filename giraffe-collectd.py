@@ -33,6 +33,27 @@ def cpu(metric_dir):
     #    metrics.append({'alias': metric + ' ' + submetric_type, 'target': metric_target(os.path.join(metric_dir, submetric))})
     return []
 
+def snmp(metric_dir):
+    d = os.path.basename(metric_dir)
+    ifaceL=[]
+    
+    server_target = metric_server_target(metric_dir)
+    for iface in sorted(os.listdir(metric_dir)):
+        ifaceL.append({ 'alias': iface,  
+                'targets': [
+                    '.'.join([server_target,d,iface,'tx']),
+                    '.'.join([server_target,d,iface,'rx'])
+                    ],
+            'scheme': [
+                '#ff0000',
+                '#00ff00'
+            ],
+            })
+        print '\tFound collectd snmp plugin for: ' + iface
+
+    return ifaceL
+
+
 def df(metric_dir):
     d = os.path.basename(metric_dir)
     print '\tFound collectd df plugin for: ' + d
@@ -192,28 +213,29 @@ def swap(metric_dir):
 dashboards = []
 for server in sorted(os.listdir(graphite_collectd_dir)):
     print server
-    server_metrics = [
-        {
-            'alias': 'CPU Usage',
-            'targets': [
-                'sum(' + configuration['graphite']['prefix'] + '.' + server + '.cpu-*.cpu-user)',
-                'sum(' + configuration['graphite']['prefix'] + '.' + server + '.cpu-*.cpu-system)',
-                'sum(' + configuration['graphite']['prefix'] + '.' + server + '.cpu-*.cpu-wait)',
-                'sum(' + configuration['graphite']['prefix'] + '.' + server + '.cpu-*.cpu-nice)'
-            ],
-            'scheme': [
-                '#00ff00',
-                '#ff00ff',
-                '#ff0000',
-                '#00ffff'
-            ]
-        }
-    ]
+    server_metrics = [ ]
     server_dir = os.path.join(graphite_collectd_dir, server)
     for metric in sorted(os.listdir(server_dir)):
         #print metric
         metric_dir = os.path.join(server_dir, metric)
         if metric.startswith('cpu-'):
+            server_metrics = server_metrics + [
+                {
+                    'alias': 'CPU Usage',
+                    'targets': [
+                        'sum(' + configuration['graphite']['prefix'] + '.' + server + '.cpu-*.cpu-user)',
+                        'sum(' + configuration['graphite']['prefix'] + '.' + server + '.cpu-*.cpu-system)',
+                        'sum(' + configuration['graphite']['prefix'] + '.' + server + '.cpu-*.cpu-wait)',
+                        'sum(' + configuration['graphite']['prefix'] + '.' + server + '.cpu-*.cpu-nice)'
+                    ],
+                    'scheme': [
+                        '#00ff00',
+                        '#ff00ff',
+                        '#ff0000',
+                        '#00ffff'
+                    ]
+                }
+            ]
             server_metrics = server_metrics + cpu(metric_dir)
         elif metric.startswith('df-'):
             server_metrics = server_metrics + df(metric_dir)
@@ -225,6 +247,9 @@ for server in sorted(os.listdir(graphite_collectd_dir)):
             server_metrics = server_metrics + memory(metric_dir)
         elif metric == 'swap':
             server_metrics = server_metrics + swap(metric_dir)
+        elif metric == 'snmp':
+            server_metrics = server_metrics + snmp(metric_dir)
+
     dashboards.append({
         "name": server,
         "refresh": configuration['giraffe']['refresh'],
